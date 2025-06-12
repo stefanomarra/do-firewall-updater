@@ -2,7 +2,7 @@
 
 A simple Bash script to keep your DigitalOcean firewall's SSH rule up-to-date with your dynamic home IP address.
 
-This is useful when your ISP changes your IP (e.g., dynamic IPs from providers like Iliad), and you want to ensure that your home IP always has SSH access to your droplets protected by a firewall.
+This is useful when your ISP changes your IP, and you want to ensure that your home IP always has SSH access to your droplets protected by a firewall.
 
 ## Features
 
@@ -20,7 +20,7 @@ This is useful when your ISP changes your IP (e.g., dynamic IPs from providers l
 Clone or copy the script locally:
 
 ```bash
-curl -o do-firewall-updater https://github.com/stefanomarra/do-firewall-updater
+curl -o do-firewall-updater https://raw.githubusercontent.com/stefanomarra/do-firewall-updater/refs/heads/master/do-firewall_updater.sh
 chmod +x do-firewall-updater
 ```
 
