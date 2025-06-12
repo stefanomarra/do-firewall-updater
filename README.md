@@ -20,7 +20,7 @@ This is useful when your ISP changes your IP, and you want to ensure that your h
 Clone or copy the script locally:
 
 ```bash
-curl -o do-firewall-updater https://raw.githubusercontent.com/stefanomarra/do-firewall-updater/refs/heads/master/do-firewall_updater.sh
+curl -o do-firewall-updater https://raw.githubusercontent.com/stefanomarra/do-firewall-updater/refs/heads/master/do-firewall-updater.sh
 chmod +x do-firewall-updater
 ```
 

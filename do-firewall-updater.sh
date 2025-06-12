@@ -72,27 +72,28 @@ FIREWALL=$(curl -s -X GET \
   -H "Authorization: Bearer $API_TOKEN" \
   "https://api.digitalocean.com/v2/firewalls/$FIREWALL_ID")
 
-# Extract inbound_rules (minimal parser without jq)
-INBOUND_RULES=$(echo "$FIREWALL" | sed -n 's/.*"inbound_rules":.*,"outbound_rules.*/\1/p')
+# Extract inner firewall object
+INNER_FIREWALL=$(echo "$FIREWALL" | sed -n 's/.*"firewall":\({.*}\)}/\1/p')
 
-# Rebuild rules with new IP
-NEW_RULES="["
-FIRST=1
-IFS='}' read -ra RULES <<< "$INBOUND_RULES"
-for RULE in "${RULES[@]}"; do
-  RULE="${RULE#*,}" # remove leading comma if present
-  if echo "$RULE" | grep -q '"protocol":"tcp"' && echo "$RULE" | grep -q '"port":"22"'; then
-    MODIFIED=$(echo "$RULE" | sed -E 's/"addresses":[^]]*/"addresses":["'"$CURRENT_IP"'"]/')
-    [ $FIRST -eq 1 ] && NEW_RULES+="{${MODIFIED}}" || NEW_RULES+=",{${MODIFIED}}"
-    FIRST=0
-  else
-    [ -n "$RULE" ] && NEW_RULES+=",{${RULE}}"
-  fi
-done
-NEW_RULES+="]"
+# Load old IP if exists
+if [ -f "$CACHE_FILE" ]; then
+  OLD_IP=$(cat "$CACHE_FILE")
+else
+  OLD_IP=""
+fi
 
-# Update firewall
-UPDATE_PAYLOAD="{\"inbound_rules\": $NEW_RULES}"
+# Replace old IP in the full firewall JSON if needed
+if [ -n "$OLD_IP" ] && [ "$OLD_IP" != "$CURRENT_IP" ]; then
+  MODIFIED_FIREWALL=$(echo "$INNER_FIREWALL" | sed "s/$OLD_IP/$CURRENT_IP/g")
+else
+  MODIFIED_FIREWALL="$INNER_FIREWALL"
+fi
+
+# Remove read-only fields: "id", "created_at", "status", etc.
+UPDATE_PAYLOAD=$(echo "$MODIFIED_FIREWALL" | \
+  sed -E 's/"id":"[^"]*",//g' | \
+  sed -E 's/"created_at":"[^"]*",//g' | \
+  sed -E 's/"status":"[^"]*",//g')
 
 RESPONSE=$(curl -s -X PUT \
   -H "Authorization: Bearer $API_TOKEN" \
